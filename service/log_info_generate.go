@@ -26,23 +26,28 @@ import (
 
 func GenerateTextOtherInfo(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, modelRatio, groupRatio, completionRatio float64,
 	cacheTokens int, cacheRatio float64, modelPrice float64) map[string]interface{} {
+	// 创建并初始化其他信息映射
 	other := make(map[string]interface{})
+	// 设置模型相关倍率和价格信息
 	other["model_ratio"] = modelRatio
 	other["group_ratio"] = groupRatio
 	other["completion_ratio"] = completionRatio
 	other["cache_tokens"] = cacheTokens
 	other["cache_ratio"] = cacheRatio
 	other["model_price"] = modelPrice
+	// 计算首次响应时间
 	other["frt"] = float64(relayInfo.FirstResponseTime.UnixMilli() - relayInfo.StartTime.UnixMilli())
+	// 添加推理努力度信息（如果存在）
 	if relayInfo.ReasoningEffort != "" {
 		other["reasoning_effort"] = relayInfo.ReasoningEffort
 	}
+	// 添加模型映射信息（如果已映射）
 	if relayInfo.IsModelMapped {
 		other["is_model_mapped"] = true
 		other["upstream_model_name"] = relayInfo.UpstreamModelName
 	}
 
-	// 添加输入输出内容
+	// 添加输入输出内容（如果启用聊天内容日志记录）
 	if relayInfo.Other != nil && common.LogChatContentEnabled {
 		if inputContent, exists := relayInfo.Other["input_content"]; exists {
 			other["input_content"] = inputContent
@@ -55,6 +60,7 @@ func GenerateTextOtherInfo(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, m
 		}
 	}
 
+	// 添加管理员信息
 	adminInfo := make(map[string]interface{})
 	adminInfo["use_channel"] = ctx.GetStringSlice("use_channel")
 	other["admin_info"] = adminInfo
